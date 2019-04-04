@@ -31,10 +31,27 @@ function onUpdate(){
 		Plotter.transition = Numbers.clamp(Plotter.transition+Time.deltaTime, 0, 1);
 		Plotter.plot();	
 	}
+	if(Input.keyDown(48+1)){
+		Plotter.transition = 0;
+		Plotter.plot();
+	} else if(Input.keyDown(48+2)){
+		Plotter.transition = 1;
+		Plotter.plot();
+	}
+	if(Input.keyDown(48+3)){
+		Plotter.gridDetail = Numbers.clamp(Plotter.gridDetail-1, 1, 1000);
+		Plotter.plot();
+	} else if(Input.keyDown(48+4)){
+		Plotter.gridDetail = Numbers.clamp(Plotter.gridDetail+1, 1, 1000);
+		Plotter.plot();
+	}
 	Gfw.cameraMovement(50);
 	Gfw.camera.recalcBounds();
 	// monitor stuffs
 	Monitor.set("FPS", Time.fps);
+	Monitor.set("Expression", Plotter.expression);
+	Monitor.set("Transition", roundToFixed(Plotter.transition, 3));
+	Monitor.set("Detail", Plotter.gridDetail);
 }
 
 function onRender(){

@@ -1,21 +1,23 @@
 function Plotter(){}
 Plotter.expression = "";
 Plotter.bounds = {
-	left: -20,
-	right: 20,
+	left: -10,
+	right: 10,
 	top: 10,
 	bottom: -10,
 };
 Plotter.gridStep = 1;
-Plotter.gridDetail = 1;
+Plotter.gridDetail = 2;
 Plotter.transition = 1;
 Plotter.init = function(){
-//	Plotter.setExpression("(x+y*i)^2*0.05");
+	Plotter.setExpression("(x+y*i)^2*0.05");
 //	Plotter.setExpression("sin(x+y*i)*0.001");
-	Plotter.setExpression("log(x+y*i)*3");
+//	Plotter.setExpression("(x+y*i)*(1+1i)");
+//	Plotter.setExpression("-1/z^2*50");
 }
 Plotter.setExpression = function(exp){
 	Plotter.expression = exp;
+	Plotter.expression = Plotter.expression.replace("z", "(x+y*i)");
 	Plotter.compiled = math.compile(Plotter.expression);
 }
 Plotter.plot = function(){	
@@ -47,6 +49,20 @@ Plotter.plot = function(){
 	}
 }
 Plotter.render = function(){
+	
+	ctx.save();
+	ctx.scale(1,-1);
+	ctx.strokeStyle = "#888888";
+	ctx.lineWidth = 1/Gfw.camera.zoom*0.5;
+	for(var x = Plotter.bounds.left; x <= Plotter.bounds.right; x++){
+		ctx.strokeLine(x, Plotter.bounds.bottom, x, Plotter.bounds.top);
+	}
+	for(var y = Plotter.bounds.bottom; y <= Plotter.bounds.top; y++){
+		ctx.strokeLine(Plotter.bounds.left, y, Plotter.bounds.right, y);
+	}	
+	ctx.restore();
+	
+	
 	ctx.strokeStyle = "white";
 	ctx.lineWidth = 1/Gfw.camera.zoom*0.5;
 	var bounds = Gfw.camera.bounds;
@@ -55,12 +71,10 @@ Plotter.render = function(){
 	var left = bounds.position.x;
 	var right = left + bounds.width;
 	ctx.strokeLine(0, top, 0, bottom);
-	ctx.strokeLine(left, 0, right, 0);
-	
+	ctx.strokeLine(left, 0, right, 0);		
 	
 	ctx.save();
-	ctx.scale(1,-1);
-	ctx.strokeStyle = "magenta";
+	ctx.scale(1,-1);	
 	ctx.lineWidth = 1/Gfw.camera.zoom*0.5;
 	var grid = Plotter.grid;
 	if(false){	
