@@ -38,11 +38,9 @@ Plotter.plot = function(){
 			var blue = Math.floor(j/ysteps*255);
 			var dx = result.re - x;
 			var dy = result.im - y;
-			var xx = x + dx*s;
-			var yy = y + dy*s;
 			Plotter.grid[i][j] = {
-				x: xx,
-				y: yy,
+				x: x + dx*s,
+				y: y + dy*s,
 			//	color: Colors.rgbToHex(red, 255-blue, blue),
 			};
 		}		
