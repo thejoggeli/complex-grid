@@ -1,7 +1,8 @@
-attribute vec3 a_pos;
-attribute vec2 a_uv;
-varying vec2 uv;
+attribute vec3 position;
+attribute vec2 texcoords;
+uniform mat4 matrix;
+varying vec2 iTexcoords;
 void main() {
-	gl_Position = vec4(a_pos, 1.0);
-	uv = a_uv;
+	gl_Position = matrix * vec4(position, 1.0);
+	iTexcoords = texcoords;
 }

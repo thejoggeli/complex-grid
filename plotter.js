@@ -7,7 +7,7 @@ Plotter.bounds = {
 	bottom: -10,
 };
 Plotter.gridStep = 1;
-Plotter.gridDetail = 2;
+Plotter.gridDetail = 1;
 Plotter.transition = 1;
 Plotter.init = function(){
 	// line shader
@@ -19,6 +19,16 @@ Plotter.init = function(){
 	Plotter.lineShader.addAttribute("position");
 	Plotter.lineShader.addAttribute("color");
 	Plotter.lineShader.addUniform("matrix");
+	// texture shader
+	Plotter.textureShader = new ShaderProgram();
+	Plotter.textureShader.create(
+		document.querySelector("#vs-grid-texture").innerHTML, 
+		document.querySelector("#fs-grid-texture").innerHTML
+	);
+	Plotter.textureShader.addAttribute("position");
+	Plotter.textureShader.addAttribute("texcoords");
+	Plotter.textureShader.addUniform("matrix");
+	Plotter.textureShader.addUniform("iTexture");
 	// lines
 	Plotter.lines = {
 		h: [],
@@ -86,7 +96,48 @@ Plotter.init = function(){
 		gl.bindBuffer(gl.ARRAY_BUFFER, line.colors_vbo);
 		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(line.colors), gl.STATIC_DRAW);
 	} */
-	
+	// texture
+	var num_x = Plotter.lines.v.length;
+	var num_y = Plotter.lines.h.length;
+	var plane = {
+		positions: [],
+		positions_vbo: gl.createBuffer(),
+		indices: [],
+		indices_vbo: gl.createBuffer(),
+		texcoords: [],
+		texcoords_vbo: gl.createBuffer(),
+		texture: null,
+		numPoints: num_x * num_y,
+		num_x: num_x,
+		num_y: num_y,
+	};
+	Plotter.plane = plane;
+	// positions
+	for(var y = 0; y < num_y; y++){
+		for(var x = 0; x < num_x; x++){	
+			plane.positions.push(x);
+			plane.positions.push(y);
+			plane.positions.push(0);
+		}
+	}	
+	// indices
+	for(var x = 1; x < num_x; x++){
+		for(var y = 1; y < num_y; y++){
+			var i1 = y*num_x+x; // bottom right
+			var i2 = y*num_x+(x-1); // bottom left
+			var i3 = (y-1)*num_x+x; // top right
+			var i4 = (y-1)*num_x+(x-1); // top left
+			plane.indices.push(i4, i3, i2);
+			plane.indices.push(i3, i2, i1);
+		}
+	}
+	gl.bindBuffer(gl.ARRAY_BUFFER, plane.positions_vbo);
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(plane.positions), gl.DYNAMIC_DRAW);
+	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, plane.indices_vbo);
+	gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Int16Array(plane.indices), gl.STATIC_DRAW);
+	gl.bindBuffer(gl.ARRAY_BUFFER, plane.texcoords_vbo);
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(plane.texcoords), gl.STATIC_DRAW);	
+	console.log(plane);
 	
 //	Plotter.setExpression("(x+y*i)^2*0.05");
 //	Plotter.setExpression("(x+y*i)^9*0.000000001");
@@ -157,9 +208,8 @@ Plotter.plot = function(){
 }
 Plotter.render = function(){
 	Gfw.getCanvas("main").setActive();
-	var shader = Plotter.lineShader;
-	var lines = Plotter.allLines;
-	shader.use();	
+	var shader;
+	
 	// matrix
 	var matrix = vv.mat4[0];
 	// scale
@@ -182,6 +232,24 @@ Plotter.render = function(){
 	glMatrix.mat4.scale(cameraMatrix, cameraMatrix, zoom);
 	glMatrix.mat4.invert(cameraMatrix, cameraMatrix);
 	glMatrix.mat4.multiply(matrix, matrix, cameraMatrix);
+	
+	// texture
+	shader = Plotter.textureShader;
+	shader.use();
+	var plane = Plotter.plane;
+	gl.uniformMatrix4fv(shader.uniforms.matrix.location, false, matrix);
+	// position
+	gl.bindBuffer(gl.ARRAY_BUFFER, plane.positions_vbo);
+	gl.vertexAttribPointer(shader.attributes.position.location, 3, gl.FLOAT, false, 0, 0); 
+	gl.enableVertexAttribArray(shader.attributes.position.location);
+	// draw
+	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, plane.indices_vbo);
+	gl.drawElements(gl.TRIANGLES, plane.numPoints, gl.UNSIGNED_SHORT, 0);
+	
+	// lines
+	shader = Plotter.lineShader;
+	shader.use();	
+	var lines = Plotter.allLines;
 	gl.uniformMatrix4fv(shader.uniforms.matrix.location, false, matrix);
 	for(var i = 0; i < Plotter.allLines.length; i++){
 		var line = lines[i];
