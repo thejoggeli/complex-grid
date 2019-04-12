@@ -146,14 +146,19 @@ Gfw.cameraMovement = function(speed){
 	var cameraX = 0;
 	var cameraY = 0;
 	if(Input.isKeyDown(87)){
-		cameraY = -1;
-	} else if(Input.isKeyDown(83)){
 		cameraY = 1;
+	} else if(Input.isKeyDown(83)){
+		cameraY = -1;
 	}
 	if(Input.isKeyDown(65)){
 		cameraX = -1;
 	} else if(Input.isKeyDown(68)){
 		cameraX = 1;
+	}
+	if(Input.isKeyDown(69)){
+		Gfw.camera.rotation -= Time.deltaTime;
+	} else if(Input.isKeyDown(81)){
+		Gfw.camera.rotation += Time.deltaTime;
 	}
 	if(cameraX != 0 || cameraY != 0){	
 		var cameraMoveAngle = Math.atan2(cameraY, cameraX) + Gfw.camera.rotation;
@@ -172,10 +177,10 @@ function Camera(){
 }
 Camera.prototype.recalcBounds = function(){
 	var aspect = window.innerWidth/window.innerHeight;
-	this.bounds.position.x = this.position.x - (Gfw.height*aspect*0.5) / this.zoom;
-	this.bounds.width = (Gfw.height*aspect) / this.zoom;
-	this.bounds.position.y = this.position.y - (Gfw.height*0.5) / this.zoom;
-	this.bounds.height = Gfw.height / this.zoom;
+	this.bounds.position.x = this.position.x - (Gfw.height*aspect*0.5) / this.zoom * 2;
+	this.bounds.width = (Gfw.height*aspect) / this.zoom*2;
+	this.bounds.position.y = this.position.y - (Gfw.height*0.5) / this.zoom * 2;
+	this.bounds.height = Gfw.height / this.zoom*2;
 }
 
 var ColliderType = {};
@@ -450,7 +455,7 @@ Canvas.prototype.transform = function(){
 	var canvas = this;
 	ctx.save();
 	ctx.translate(canvas.element.width/2, canvas.element.height/2);
-	if(Gfw.scaling) ctx.scale(Gfw.scale, Gfw.scale);
+	if(Gfw.scaling) ctx.scale(Gfw.scale*0.5, -Gfw.scale*0.5);
 	ctx.rotate(-Gfw.camera.rotation);
 	ctx.scale(Gfw.camera.zoom, Gfw.camera.zoom);
 	ctx.translate(-Gfw.camera.position.x, -Gfw.camera.position.y);

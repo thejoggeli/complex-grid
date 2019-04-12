@@ -1,7 +1,8 @@
 $(document).ready(function(){
 	Monitor.setup({showTitle: false});	// setup Gfw 
-	Gfw.setup({scaling:true, height:100});
-	Gfw.createCanvas("main", {"renderMode": RenderMode.Canvas2d});
+	Gfw.setup({scaling:true, height:12});
+	Gfw.createCanvas("d2", {"renderMode": RenderMode.Canvas2d});
+	Gfw.createCanvas("main", {"renderMode": RenderMode.Canvas3d});
 	Gfw.getCanvas("main").setActive();
 	Gfw.onUpdate = onUpdate;
 	Gfw.onRender = onRender;
@@ -13,10 +14,19 @@ $(document).ready(function(){
 });
 
 function onInit(){
-	Gfw.camera.zoom = 3.5;
+	Gfw.camera.zoom = 1.0;
 	Plotter.init();
-	Plotter.transition = 1;
+	Plotter.transition = 0.3;
 	Plotter.plot();
+	vv = {mat4:[], mat3:[], vec4:[], vec3:[], vec2:[], quat:[]};
+	for(var i = 0; i < 10; i++){
+		vv.mat4[i] = glMatrix.mat4.create();
+		vv.mat3[i] = glMatrix.mat3.create();
+		vv.vec4[i] = glMatrix.vec4.create();
+		vv.vec3[i] = glMatrix.vec3.create();
+		vv.vec2[i] = glMatrix.vec2.create();
+		vv.quat[i] = glMatrix.quat.create();
+	}
 }
 
 function onResize(){
