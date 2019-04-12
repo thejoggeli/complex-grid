@@ -1,15 +1,23 @@
 function Plotter(){}
-Plotter.expression = "";
+Plotter.expression = "(x+y*i)^2";
 Plotter.bounds = {
-	left: -10,
-	right: 10,
-	top: 10,
-	bottom: -10,
+	left: -16,
+	right: 16,
+	bottom: -9,
+	top: 9,
 };
 Plotter.gridStep = 1;
-Plotter.gridDetail = 1;
+Plotter.gridDetail = 2;
 Plotter.transition = 1;
+Plotter.positions = {
+	before: [],
+	inter: [],
+	after: [],
+};
+Plotter.lines = null;
+Plotter.plane = null;
 Plotter.init = function(){
+	
 	// line shader
 	Plotter.lineShader = new ShaderProgram();
 	Plotter.lineShader.create(
@@ -19,6 +27,7 @@ Plotter.init = function(){
 	Plotter.lineShader.addAttribute("position");
 	Plotter.lineShader.addAttribute("color");
 	Plotter.lineShader.addUniform("matrix");
+	
 	// texture shader
 	Plotter.textureShader = new ShaderProgram();
 	Plotter.textureShader.create(
@@ -28,52 +37,12 @@ Plotter.init = function(){
 	Plotter.textureShader.addAttribute("position");
 	Plotter.textureShader.addAttribute("texcoords");
 	Plotter.textureShader.addUniform("matrix");
-	Plotter.textureShader.addUniform("iTexture");
-	// lines
-	Plotter.lines = {
-		h: [],
-		v: [],
-	};
-	Plotter.allLines = [];
-	var hrange = Plotter.bounds.right - Plotter.bounds.left;
-	var vrange = Plotter.bounds.top - Plotter.bounds.bottom;
-	var hmax = Plotter.gridDetail * hrange;
-	var vmax = Plotter.gridDetail * vrange;
-	for(var h = 0; h <= hmax; h++){
-		Plotter.lines.h[h] = Plotter.generateLine(vmax+1);
-		Plotter.allLines.push(Plotter.lines.h[h]);
-	}	
-	for(var v = 0; v <= vmax; v++){
-		Plotter.lines.v[v] = Plotter.generateLine(hmax+1);	
-		Plotter.allLines.push(Plotter.lines.v[v]);
-	}
-	for(var h = 0; h <= hmax; h++){
-		var line = Plotter.lines.h[h];
-		var c1 = h/hmax;
-		for(var x = 0; x < line.numPoints; x++){
-			var c2 = x/(line.numPoints-1);
-			line.colors[x*4] = 1-c1;
-			line.colors[x*4+1] = c1;
-			line.colors[x*4+2] = c2;
-			line.colors[x*4+3] = 1;
-		} 
-		gl.bindBuffer(gl.ARRAY_BUFFER, line.colors_vbo);
-		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(line.colors), gl.STATIC_DRAW);
-	}
-	for(var v = 0; v <= vmax; v++){
-		var line = Plotter.lines.v[v];
-		var c1 = v/vmax;
-		for(var y = 0; y < line.numPoints; y++){
-			var c2 = y/(line.numPoints-1);
-			line.colors[y*4] = 1-c1;
-			line.colors[y*4+1] = c2;
-			line.colors[y*4+2] = c1;
-			line.colors[y*4+3] = 1;
-		}
-		gl.bindBuffer(gl.ARRAY_BUFFER, line.colors_vbo);
-		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(line.colors), gl.STATIC_DRAW);
-	}
-	gl.bindBuffer(gl.ARRAY_BUFFER, null);
+	Plotter.textureShader.addChannel("iTexture");
+	Plotter.textureShader.use();
+	Plotter.textureShader.setChannel("iTexture", Textures.get("raten"));
+	
+	Plotter.refresh();
+	
 	// grid
 /*	Plotter.gridLines = {v: [], h: []};
 	Plotter.allGridLines = [];
@@ -96,57 +65,65 @@ Plotter.init = function(){
 		gl.bindBuffer(gl.ARRAY_BUFFER, line.colors_vbo);
 		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(line.colors), gl.STATIC_DRAW);
 	} */
-	// texture
-	var num_x = Plotter.lines.v.length;
-	var num_y = Plotter.lines.h.length;
-	var plane = {
-		positions: [],
-		positions_vbo: gl.createBuffer(),
-		indices: [],
-		indices_vbo: gl.createBuffer(),
-		texcoords: [],
-		texcoords_vbo: gl.createBuffer(),
-		texture: null,
-		numPoints: num_x * num_y,
-		num_x: num_x,
-		num_y: num_y,
-	};
-	Plotter.plane = plane;
-	// positions
-	for(var y = 0; y < num_y; y++){
-		for(var x = 0; x < num_x; x++){	
-			plane.positions.push(x);
-			plane.positions.push(y);
-			plane.positions.push(0);
+}
+Plotter.refresh = function(){
+	Plotter.generateLines();
+	Plotter.generatePlane();
+	Plotter.plot();
+	Plotter.apply();
+}
+Plotter.generateLines = function(){
+	if(Plotter.lines !== null){
+		for(var i = 0; i < Plotter.allLines; i++){
+			var line = Plotter.allLines[i];
+			gl.deleteBuffer(line.positions_vbo);
+			gl.deleteBuffer(line.colors_vbo);
 		}
 	}	
-	// indices
-	for(var x = 1; x < num_x; x++){
-		for(var y = 1; y < num_y; y++){
-			var i1 = y*num_x+x; // bottom right
-			var i2 = y*num_x+(x-1); // bottom left
-			var i3 = (y-1)*num_x+x; // top right
-			var i4 = (y-1)*num_x+(x-1); // top left
-			plane.indices.push(i4, i3, i2);
-			plane.indices.push(i3, i2, i1);
-		}
+	Plotter.lines = {
+		h: [],
+		v: [],
+	};
+	Plotter.allLines = [];
+	var hrange = Plotter.bounds.top - Plotter.bounds.bottom;
+	var vrange = Plotter.bounds.right - Plotter.bounds.left;
+	var hpoints = Plotter.gridDetail * hrange;
+	var vpoints = Plotter.gridDetail * vrange;
+	for(var h = 0; h <= hrange; h++){
+		Plotter.lines.h[h] = Plotter.generateLine(vpoints+1);
+		Plotter.allLines.push(Plotter.lines.h[h]);
+	}	
+	for(var v = 0; v <= vrange; v++){
+		Plotter.lines.v[v] = Plotter.generateLine(hpoints+1);	
+		Plotter.allLines.push(Plotter.lines.v[v]);
 	}
-	gl.bindBuffer(gl.ARRAY_BUFFER, plane.positions_vbo);
-	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(plane.positions), gl.DYNAMIC_DRAW);
-	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, plane.indices_vbo);
-	gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Int16Array(plane.indices), gl.STATIC_DRAW);
-	gl.bindBuffer(gl.ARRAY_BUFFER, plane.texcoords_vbo);
-	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(plane.texcoords), gl.STATIC_DRAW);	
-	console.log(plane);
-	
-//	Plotter.setExpression("(x+y*i)^2*0.05");
-//	Plotter.setExpression("(x+y*i)^9*0.000000001");
-//	Plotter.setExpression("sin(x+y*i)*0.001");
-//	Plotter.setExpression("(x+y*i)*(1+1i)");
-//	Plotter.setExpression("-1/z^2*50");
-//	Plotter.setExpression("(4i*(x+y*i)-12)/(-(x+y*i)*3i)");
-//	Plotter.setExpression("(x+y*i)*(1+i)*(1.5)+2+2i");
-	Plotter.setExpression("(x+y*i)^2*0.05");
+	for(var h = 0; h <= hrange; h++){
+		var line = Plotter.lines.h[h];
+		var c1 = h/hrange;
+		for(var x = 0; x < line.numPoints; x++){
+			var c2 = x/(line.numPoints-1);
+			line.colors[x*4] = 1-c1;
+			line.colors[x*4+1] = c1;
+			line.colors[x*4+2] = c2;
+			line.colors[x*4+3] = 1;
+		} 
+		gl.bindBuffer(gl.ARRAY_BUFFER, line.colors_vbo);
+		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(line.colors), gl.STATIC_DRAW);
+	}
+	for(var v = 0; v <= vrange; v++){
+		var line = Plotter.lines.v[v];
+		var c1 = v/vrange;
+		for(var y = 0; y < line.numPoints; y++){
+			var c2 = y/(line.numPoints-1);
+			line.colors[y*4] = 1-c1;
+			line.colors[y*4+1] = c2;
+			line.colors[y*4+2] = c1;
+			line.colors[y*4+3] = 1;
+		}
+		gl.bindBuffer(gl.ARRAY_BUFFER, line.colors_vbo);
+		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(line.colors), gl.STATIC_DRAW);
+	}
+	gl.bindBuffer(gl.ARRAY_BUFFER, null);
 }
 Plotter.generateLine = function(numPoints){
 	var line = {
@@ -169,41 +146,127 @@ Plotter.generateLine = function(numPoints){
 	line.colors_vbo = gl.createBuffer();
 	return line;
 }
+Plotter.generatePlane = function(){	
+	if(Plotter.plane !== null){
+		gl.deleteBuffer(Plotter.plane.positions_vbo);
+		gl.deleteBuffer(Plotter.plane.texcoords_vbo);
+		gl.deleteBuffer(Plotter.plane.indices_vbo);
+	}	
+	var plane = {
+		positions: [],
+		positions_vbo: gl.createBuffer(),
+		indices: [],
+		indices_vbo: gl.createBuffer(),
+		texcoords: [],
+		texcoords_vbo: gl.createBuffer(),
+		texture: null,
+	};
+	plane.left = 0;
+	plane.right = (Plotter.lines.v.length-1)*Plotter.gridDetail;
+	plane.bottom = 0;
+	plane.top = (Plotter.lines.h.length-1)*Plotter.gridDetail;
+	plane.num_x = plane.right - plane.left + 1;
+	plane.num_y = plane.top - plane.bottom + 1;
+	plane.numPoints = plane.num_x * plane.num_y;
+	plane.numTriangles = (plane.num_x-1)*(plane.num_y-1)*2,
+	Plotter.plane = plane;
+	// positions
+	for(var y = plane.num_y-1; y >= 0; y--){
+		for(var x = 0; x < plane.num_x; x++){
+			plane.positions.push(x);
+			plane.positions.push(y);
+			plane.positions.push(0);
+			plane.texcoords.push(x/(plane.num_x-1));
+			plane.texcoords.push(y/(plane.num_y-1));
+		}
+	}
+	// indices
+	for(var x = 1; x < plane.num_x; x++){
+		for(var y = 1; y < plane.num_y; y++){
+			var i1 = y*plane.num_x+x; // bottom right
+			var i2 = y*plane.num_x+(x-1); // bottom left
+			var i3 = (y-1)*plane.num_x+x; // top right
+			var i4 = (y-1)*plane.num_x+(x-1); // top left
+			plane.indices.push(i4, i3, i2);
+			plane.indices.push(i3, i2, i1);
+		}
+	}
+	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, plane.indices_vbo);
+	gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(plane.indices), gl.STATIC_DRAW);
+	gl.bindBuffer(gl.ARRAY_BUFFER, plane.texcoords_vbo);
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(plane.texcoords), gl.STATIC_DRAW);	
+}
 Plotter.setExpression = function(exp){
 	Plotter.expression = exp;
 	Plotter.expression = Plotter.expression.replace("z", "(x+y*i)");
 	Plotter.compiled = math.compile(Plotter.expression);
 }
 Plotter.plot = function(){
-	var s = Plotter.transition;
 	var compiled = Plotter.compiled;
-	var w = Plotter.bounds.right - Plotter.bounds.left;
-	var h = Plotter.bounds.top - Plotter.bounds.bottom;
-	var lines = Plotter.lines;
-	var xsteps = lines.v.length-1;
-	var ysteps = lines.h.length-1;
-	for(var i = 0; i <= xsteps; i++){
+	var xsteps = (Plotter.lines.v.length-1) * Plotter.gridDetail + 1;
+	var ysteps = (Plotter.lines.h.length-1) * Plotter.gridDetail + 1;
+	Plotter.positions.before = [];
+	Plotter.positions.inter = [];
+	Plotter.positions.after = [];
+	for(var i = 0; i < xsteps; i++){
 		var x = Plotter.bounds.left + i/Plotter.gridDetail;
-		var red = Math.floor(i/xsteps*255);
-		for(var j = 0; j <= ysteps; j++){
+		Plotter.positions.before[i] = [];
+		Plotter.positions.inter[i] = [];
+		Plotter.positions.after[i] = [];
+		for(var j = 0; j < ysteps; j++){
 			var y = Plotter.bounds.bottom + j/Plotter.gridDetail;
-			var result = compiled.eval({x: x, y: y});
-			var blue = Math.floor(j/ysteps*255);
-			var dx = result.re - x;
-			var dy = result.im - y;
-			var xx = x + dx*s;
-			var yy = y + dy*s;
-			lines.h[j].positions[i*3] = xx;
-			lines.h[j].positions[i*3+1] = yy;
-			lines.v[i].positions[j*3] = xx;
-			lines.v[i].positions[j*3+1] = yy;
+			var result = compiled.eval({x: x, y: y});			
+			Plotter.positions.before[i][j] = {x: x, y: y};
+			Plotter.positions.inter[i][j] = {x: x, y: y};
+			Plotter.positions.after[i][j] = {x: result.re, y: result.im};
 		}
+	}
+}
+Plotter.apply = function(){
+	var before = Plotter.positions.before;
+	var inter = Plotter.positions.inter;
+	var after = Plotter.positions.after;
+	var s = Plotter.transition;
+	var lines = Plotter.lines;
+	for(var i = 0; i < before.length; i++){
+		for(var j = 0; j < before[i].length; j++){
+			inter[i][j].x = before[i][j].x + (after[i][j].x - before[i][j].x)*s
+			inter[i][j].y = before[i][j].y + (after[i][j].y - before[i][j].y)*s
+		}
+	}
+	for(var h = 0; h < lines.h.length; h++){
+		var line = lines.h[h];
+		var y = h*Plotter.gridDetail;
+		for(var i = 0; i < line.numPoints; i++){
+			var x = i;
+			line.positions[i*3+0] = inter[x][y].x;
+			line.positions[i*3+1] = inter[x][y].y;
+		}	
+	}
+	for(var v = 0; v < lines.v.length; v++){
+		var line = lines.v[v];
+		var x = v*Plotter.gridDetail;
+		for(var i = 0; i < line.numPoints; i++){
+			var y = i;
+			line.positions[i*3+0] = inter[x][y].x;
+			line.positions[i*3+1] = inter[x][y].y;
+		}	
 	}
 	for(var i = 0; i < Plotter.allLines.length; i++){
 		var line = Plotter.allLines[i];
 		gl.bindBuffer(gl.ARRAY_BUFFER, line.positions_vbo);
 		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(line.positions), gl.DYNAMIC_DRAW);
-	}	
+	}
+	var plane = Plotter.plane;
+	for(var x = 0; x < plane.num_x; x++){		
+		for(var y = 0; y < plane.num_y; y++){
+			var i = (y*plane.num_x+x)*3;
+			plane.positions[i+0] = inter[x+plane.left][y+plane.bottom].x;
+			plane.positions[i+1] = inter[x+plane.left][y+plane.bottom].y;
+		}
+	}
+	gl.bindBuffer(gl.ARRAY_BUFFER, plane.positions_vbo);
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(plane.positions), gl.DYNAMIC_DRAW);
 	gl.bindBuffer(gl.ARRAY_BUFFER, null);	
 }
 Plotter.render = function(){
@@ -242,9 +305,17 @@ Plotter.render = function(){
 	gl.bindBuffer(gl.ARRAY_BUFFER, plane.positions_vbo);
 	gl.vertexAttribPointer(shader.attributes.position.location, 3, gl.FLOAT, false, 0, 0); 
 	gl.enableVertexAttribArray(shader.attributes.position.location);
-	// draw
+	// texcoords
+	gl.bindBuffer(gl.ARRAY_BUFFER, plane.texcoords_vbo);
+	gl.vertexAttribPointer(shader.attributes.texcoords.location, 2, gl.FLOAT, false, 0, 0); 
+	gl.enableVertexAttribArray(shader.attributes.texcoords.location);
+	// indices
 	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, plane.indices_vbo);
-	gl.drawElements(gl.TRIANGLES, plane.numPoints, gl.UNSIGNED_SHORT, 0);
+	// draw
+	gl.enable(gl.BLEND);
+	gl.blendFunc(gl.SRC_COLOR, gl.ONE_MINUS_DST_COLOR);
+	gl.drawElements(gl.TRIANGLES, plane.indices.length, gl.UNSIGNED_SHORT, 0);
+	gl.disable(gl.BLEND);
 	
 	// lines
 	shader = Plotter.lineShader;

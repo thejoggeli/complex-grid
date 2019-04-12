@@ -53,6 +53,29 @@ ShaderProgram.prototype.addUniform = function(name){
 	};	
 	console.log("uniform", this.uniforms[name]);
 }
+ShaderProgram.prototype.addChannel = function(name, resource){	
+	this.channels[name] = {
+		name: name,
+		location: gl.getUniformLocation(this.program, name),
+		index: ShaderProgram.channelIndex++,
+		resource: null,
+	};
+	if(resource !== undefined && resource !== null){
+		this.setChannel(name, resource);
+	}
+}
+ShaderProgram.prototype.setChannel = function(name, resource){
+	var channel = this.channels[name];
+	if(channel.resource !== null && channel.resource.type == "audio"){
+		channel.resource.stop();
+	}
+	channel.resource = resource;
+	if(resource.type == "audio"){
+		if(resource.htmlAudio.autoplay){
+			resource.play();
+		}
+	}
+}
 ShaderProgram.prototype.use = function(){
 	gl.useProgram(this.program);
 }
