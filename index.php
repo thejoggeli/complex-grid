@@ -17,6 +17,7 @@
 	<script src="shader.js"></script>
 	<script src="textures.js"></script>
 	<script src="plotter.js"></script>
+	<script src="ui.js"></script>
 	<script type="x-shader/x-vertex" id="vs-grid-line">
 		<?= get_shader_src("grid-line.vert") ?>
 	</script>
@@ -43,5 +44,13 @@
 		<div class="inner">
 			<span class="toast-text">Toast</div>
 		</div>
+	</div>
+	<div id="ui">
+		<div>
+			<input type="text" class="expression" value="(x+y*i)^2*0.05">
+		</div>
+		<div>
+			<button class="plot-it">Plot it!</button>
+		</div>	
 	</div>
 </body></html>

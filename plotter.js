@@ -16,6 +16,8 @@ Plotter.positions = {
 };
 Plotter.lines = null;
 Plotter.plane = null;
+Plotter.drawLines = true;
+Plotter.drawPlane = true;
 Plotter.init = function(){
 	
 	// line shader
@@ -297,43 +299,47 @@ Plotter.render = function(){
 	glMatrix.mat4.multiply(matrix, matrix, cameraMatrix);
 	
 	// texture
-	shader = Plotter.textureShader;
-	shader.use();
-	var plane = Plotter.plane;
-	gl.uniformMatrix4fv(shader.uniforms.matrix.location, false, matrix);
-	// position
-	gl.bindBuffer(gl.ARRAY_BUFFER, plane.positions_vbo);
-	gl.vertexAttribPointer(shader.attributes.position.location, 3, gl.FLOAT, false, 0, 0); 
-	gl.enableVertexAttribArray(shader.attributes.position.location);
-	// texcoords
-	gl.bindBuffer(gl.ARRAY_BUFFER, plane.texcoords_vbo);
-	gl.vertexAttribPointer(shader.attributes.texcoords.location, 2, gl.FLOAT, false, 0, 0); 
-	gl.enableVertexAttribArray(shader.attributes.texcoords.location);
-	// indices
-	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, plane.indices_vbo);
-	// draw
-	gl.enable(gl.BLEND);
-	gl.blendFunc(gl.SRC_COLOR, gl.ONE_MINUS_DST_COLOR);
-	gl.drawElements(gl.TRIANGLES, plane.indices.length, gl.UNSIGNED_SHORT, 0);
-	gl.disable(gl.BLEND);
-	
-	// lines
-	shader = Plotter.lineShader;
-	shader.use();	
-	var lines = Plotter.allLines;
-	gl.uniformMatrix4fv(shader.uniforms.matrix.location, false, matrix);
-	for(var i = 0; i < Plotter.allLines.length; i++){
-		var line = lines[i];
+	if(Plotter.drawPlane){
+		shader = Plotter.textureShader;
+		shader.use();
+		var plane = Plotter.plane;
+		gl.uniformMatrix4fv(shader.uniforms.matrix.location, false, matrix);
 		// position
-		gl.bindBuffer(gl.ARRAY_BUFFER, line.positions_vbo);
+		gl.bindBuffer(gl.ARRAY_BUFFER, plane.positions_vbo);
 		gl.vertexAttribPointer(shader.attributes.position.location, 3, gl.FLOAT, false, 0, 0); 
 		gl.enableVertexAttribArray(shader.attributes.position.location);
-		// color
-		gl.bindBuffer(gl.ARRAY_BUFFER, line.colors_vbo);
-		gl.vertexAttribPointer(shader.attributes.color.location, 4, gl.FLOAT, false, 0, 0); 
-		gl.enableVertexAttribArray(shader.attributes.color.location);
+		// texcoords
+		gl.bindBuffer(gl.ARRAY_BUFFER, plane.texcoords_vbo);
+		gl.vertexAttribPointer(shader.attributes.texcoords.location, 2, gl.FLOAT, false, 0, 0); 
+		gl.enableVertexAttribArray(shader.attributes.texcoords.location);
+		// indices
+		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, plane.indices_vbo);
 		// draw
-		gl.drawArrays(gl.LINE_STRIP, 0, line.numPoints);
+		gl.enable(gl.BLEND);
+		gl.blendFunc(gl.SRC_COLOR, gl.ONE_MINUS_DST_COLOR);
+		gl.drawElements(gl.TRIANGLES, plane.indices.length, gl.UNSIGNED_SHORT, 0);
+		gl.disable(gl.BLEND);
+	}
+	
+	// lines
+	if(Plotter.drawLines){
+		shader = Plotter.lineShader;
+		shader.use();	
+		var lines = Plotter.allLines;
+		gl.uniformMatrix4fv(shader.uniforms.matrix.location, false, matrix);
+		for(var i = 0; i < Plotter.allLines.length; i++){
+			var line = lines[i];
+			// position
+			gl.bindBuffer(gl.ARRAY_BUFFER, line.positions_vbo);
+			gl.vertexAttribPointer(shader.attributes.position.location, 3, gl.FLOAT, false, 0, 0); 
+			gl.enableVertexAttribArray(shader.attributes.position.location);
+			// color
+			gl.bindBuffer(gl.ARRAY_BUFFER, line.colors_vbo);
+			gl.vertexAttribPointer(shader.attributes.color.location, 4, gl.FLOAT, false, 0, 0); 
+			gl.enableVertexAttribArray(shader.attributes.color.location);
+			// draw
+			gl.drawArrays(gl.LINE_STRIP, 0, line.numPoints);
+		}
 	}
 	
 	Gfw.getCanvas("d2").setActive();

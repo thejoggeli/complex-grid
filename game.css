@@ -1,0 +1,16 @@
+#ui {
+	font-size:12px;font-family:"VeraMono";color:white;
+	background:#0000;border-radius:0 0 0 4px;
+	position:fixed;top:0;right:0;z-index:50000;
+	user-select:none;overflow-y:auto;max-height:100%;
+	padding:5px;width:300px;
+}
+#ui button {border:1px solid black;background:#fff;min-width:32px;height:22px;pointer-events:auto;outline:none;border-radius:4px;}
+#ui button:hover {cursor:pointer;}
+#ui button:active {background:black !important; color:white;}
+#ui input[type="text"]{
+	border:1px solid black;background:white;height:22px;box-sizing:border-box;font-size:12px;color:black;outline:none;
+	font-family:"VeraMono";padding:0 2px;border-radius:4px;
+}
+#ui input[type="text"].expression {text-align:left;width:100%;margin-bottom:5px;}
+#ui button.plot-it {width:100%;}

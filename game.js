@@ -26,9 +26,14 @@ function onInit(){
 //	Plotter.setExpression("-1/z^2*50");
 //	Plotter.setExpression("(4i*(x+y*i)-12)/(-(x+y*i)*3i)");
 //	Plotter.setExpression("(x+y*i)*(1+i)*(1.5)+2+2i");
-	Plotter.setExpression("(x+y*i)^2*0.05");
+//	Plotter.setExpression("(x+y*i)^2*0.05");
 //	Plotter.setExpression("x+y*i+2i");
-//	Plotter.setExpression("(x+y*i+i*sin(x*2)*0.2)*0.5*(1+i)");
+//	Plotter.setExpression("(x+y*i+i*sin(x*2)+sin(y*2))*0.75");
+//	Plotter.setExpression("(x+y*i)*(abs(x)+abs(y)*i)*0.06");
+//	Plotter.setExpression("(x+sign(sin(x))*y*i)");
+//	Plotter.setExpression("abs((x+y*i))*(1+1i)");
+//	Plotter.setExpression("((abs(x)+y*i))*(1+1i)");
+	Plotter.setExpression("sin(y)*x+y*i");
 	
 	Plotter.transition = 1;
 	Plotter.init();
@@ -42,6 +47,9 @@ function onInit(){
 		vv.vec2[i] = glMatrix.vec2.create();
 		vv.quat[i] = glMatrix.quat.create();
 	}
+	
+	Ui.init();
+	
 }
 
 function onResize(){
@@ -69,6 +77,12 @@ function onUpdate(){
 	} else if(Input.keyDown(48+4)){
 		Plotter.gridDetail = Numbers.clamp(Plotter.gridDetail+1, 1, 1000);
 		Plotter.refresh();
+	}
+	if(Input.keyDown(48+5)){
+		Plotter.drawLines = !Plotter.drawLines;
+	}
+	if(Input.keyDown(48+6)){
+		Plotter.drawPlane = !Plotter.drawPlane;
 	}
 	Gfw.cameraMovement(50);
 	Gfw.camera.recalcBounds();
