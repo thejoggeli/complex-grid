@@ -1,16 +1,74 @@
 #ui {
 	font-size:12px;font-family:"VeraMono";color:white;
-	background:#0000;border-radius:0 0 0 4px;
+	background:#fffc;border-radius:0 0 0 4px;
 	position:fixed;top:0;right:0;z-index:50000;
-	user-select:none;overflow-y:auto;max-height:100%;
-	padding:5px;width:300px;
+	user-select:none;overflow-y:auto;max-height:100%;overflow-x:visible;
 }
-#ui button {border:1px solid black;background:#fff;min-width:32px;height:22px;pointer-events:auto;outline:none;border-radius:4px;}
+#ui button {border:1px solid black;background:white;min-width:32px;height:22px;pointer-events:auto;outline:none;border-radius:4px;}
 #ui button:hover {cursor:pointer;}
 #ui button:active {background:black !important; color:white;}
 #ui input[type="text"]{
 	border:1px solid black;background:white;height:22px;box-sizing:border-box;font-size:12px;color:black;outline:none;
 	font-family:"VeraMono";padding:0 2px;border-radius:4px;
 }
-#ui input[type="text"].expression {text-align:left;width:100%;margin-bottom:5px;}
-#ui button.plot-it {width:100%;}
+#ui input[type="text"].expression-input {text-align:left;}
+
+#ui .category {padding-bottom:2px;overflow-x:visible;position:relative;}
+#ui .title {background:black;color:white;padding:5px;margin-bottom:2px;font-weight:bold;}
+#ui .row {padding:2px 5px;box-sizing:border-box;font-size:0;height:26px;overflow-x:visible;position:relative;}
+#ui .row .label {width:76px;display:inline-block;color:black;font-size:12px;}
+#ui .input-row-1 button,
+#ui .input-row-1 input {width:164px;}
+#ui .input-row-1-nolabel button,
+#ui .input-row-1-nolabel input {width:240px;}
+#ui .input-row-2 button,
+#ui .input-row-2 input {width:80px;text-align:center;}
+#ui .input-row-2-nolabel button {width:93px;}
+#ui .input-row-2-nolabel .input-1 {margin-right:4px;}
+#ui .input-row-2 .input-1 {margin-right:4px;}
+#ui .input-row-3 button,
+#ui .input-row-3 input {width:76px;margin-right:6px;text-align:center;}
+#ui .input-row-3-compact .input-1 {width:51px;margin-right:5px;}
+#ui .input-row-3-compact .input-2 {width:52px;margin-right:5px;text-align:center;background:transparent;border-color:transparent;}
+#ui .input-row-3-compact .input-3 {width:51px;}
+#ui .input-row-3-label button,
+#ui .input-row-3-label input {width:45px;margin-right:5px;text-align:center;}
+#ui .input-row-3 .input-3 {margin-right:0;}
+#ui .input-row-3-label .input-3 {margin-right:0;}
+#ui .plot-row input {width:100%;}
+#ui .plotit-row button {width:100%;}
+#ui .line-width {text-align:center;}
+#ui {}
+#ui .plot-row {}
+
+#ui .range-row {position:relative;}
+#ui .range-row .label {position:absolute;top:6px;}
+#ui .range-row input[type="range"] {position:absolute;left:82px;width:108px;}
+
+#ui .toggle-button.active {opacity:1;}
+#ui .toggle-button:not(.active) {opacity:0.5;}
+
+#ui .maximize {display:none}
+#ui .minimize, 
+#ui .maximize {
+	position:absolute;right:0;top:0;z-index:50005;color:white;font-family:"VeraMono";font-size:16px;
+	height:25px;width:25px;text-align:center;font-weight:bold;line-height:23px;
+}
+#ui .minimize:hover, 
+#ui .maximize:hover {
+	cursor:pointer;
+}
+#ui .maximize {
+	position:fixed;height:25px;border-radius:0 0 0 4px;color:black;background:#ffa;
+}
+
+#ui .description {
+	margin-top:5px;color:black;font-size:12px;
+}
+
+#ui input[type=text].unsaved {
+	/*background:#aaeeaa;*/
+}
+#ui .plot-it.unsaved {
+	background:#6f6;
+}

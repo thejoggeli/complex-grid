@@ -33,10 +33,8 @@ function onInit(){
 //	Plotter.setExpression("(x+sign(sin(x))*y*i)");
 //	Plotter.setExpression("abs((x+y*i))*(1+1i)");
 //	Plotter.setExpression("((abs(x)+y*i))*(1+1i)");
-	Plotter.setExpression("sin(y)*x+y*i");
-	
-	Plotter.transition = 1;
-	Plotter.init();
+//	Plotter.setExpression("sin(y)*x+y*i");
+//	Plotter.setExpression("(x+y*i+i*sin(x*2)*0.2+sin(y*2)*0.2)*0.75");
 	
 	vv = {mat4:[], mat3:[], vec4:[], vec3:[], vec2:[], quat:[]};
 	for(var i = 0; i < 10; i++){
@@ -49,6 +47,10 @@ function onInit(){
 	}
 	
 	Ui.init();
+	Ui.apply();
+	
+	Plotter.transition = 1;
+	Plotter.init();
 	
 }
 
@@ -64,14 +66,14 @@ function onUpdate(){
 		Plotter.transition = Numbers.clamp(Plotter.transition+Time.deltaTime, 0, 1);
 		Plotter.apply();
 	}
-	if(Input.keyDown(48+1)){
+/*	if(Input.keyDown(48+1)){
 		Plotter.transition = 0;
 		Plotter.apply();
 	} else if(Input.keyDown(48+2)){
 		Plotter.transition = 1;
 		Plotter.apply();
-	}
-	if(Input.keyDown(48+3)){
+	} */
+/*	if(Input.keyDown(48+3)){
 		Plotter.gridDetail = Numbers.clamp(Plotter.gridDetail-1, 1, 1000);
 		Plotter.refresh();
 	} else if(Input.keyDown(48+4)){
@@ -83,8 +85,8 @@ function onUpdate(){
 	}
 	if(Input.keyDown(48+6)){
 		Plotter.drawPlane = !Plotter.drawPlane;
-	}
-	Gfw.cameraMovement(50);
+	} */
+	Gfw.cameraMovement(10);
 	Gfw.camera.recalcBounds();
 	// monitor stuffs
 	Monitor.set("FPS", Time.fps);

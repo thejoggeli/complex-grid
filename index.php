@@ -45,12 +45,34 @@
 			<span class="toast-text">Toast</div>
 		</div>
 	</div>
+	
 	<div id="ui">
-		<div>
-			<input type="text" class="expression" value="(x+y*i)^2*0.05">
+		<div class="minimize">-</div>
+		<div class="maximize">+</div>		
+		<div class="category">
+			<div class="title">Settings</div>
+			<div class="row input-row-2">
+				<div class="label">Display</div>
+				<button class="input-1 toggle-button show-grid active" name="show-grid">Grid</button>
+				<button class="input-2 toggle-button show-texture active" name="show-texture">Image</button>
+			</div>
+			<div class="row input-row-3-compact">
+				<div class="label range-label">Detail</div>
+				<button class="input-1 detail-down">-</button>
+				<input class="input-2 detail" type="text" value="4" name="detail" readonly>
+				<button class="input-3 detail-up">+</button>
+			</div>	
+			<div class="row input-row-1">
+				<div class="description">Transition: Arrow Keys</div>
+			</div>	
 		</div>
-		<div>
-			<button class="plot-it">Plot it!</button>
-		</div>	
+		<div class="category" style="margin-top:5px">
+			<div class="title">Expression</div>
+			<div class="row plot-row">
+				<input type="text" class="input expression" value="(x+y*i+i*sin(x*2)*0.2+sin(y*2)*0.2)*0.75" name="expression">
+			</div>
+			<div class="row plotit-row"><button class="plot-it">Apply</button></div>			
+		</div>
 	</div>
+	
 </body></html>
