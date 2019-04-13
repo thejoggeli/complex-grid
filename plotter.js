@@ -354,7 +354,8 @@ Plotter.render = function(){
 	var bottom = top + bounds.height;
 	var left = bounds.position.x;
 	var right = left + bounds.width;
-	ctx.strokeLine(0, top, 0, bottom);
-	ctx.strokeLine(left, 0, right, 0);		
+	var w2 = Math.abs(top-bottom)*2;
+	ctx.strokeLine(0, top-w2, 0, bottom+w2);
+	ctx.strokeLine(left-w2, 0, right+w2, 0);		
 	Gfw.getCanvas("main").setActive();
 }

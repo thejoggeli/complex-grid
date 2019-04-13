@@ -26,9 +26,9 @@ function onInit(){
 //	Plotter.setExpression("-1/z^2*50");
 //	Plotter.setExpression("(4i*(x+y*i)-12)/(-(x+y*i)*3i)");
 //	Plotter.setExpression("(x+y*i)*(1+i)*(1.5)+2+2i");
-//	Plotter.setExpression("(x+y*i)^2*0.05");
+	Plotter.setExpression("(x+y*i)^2*0.05");
 //	Plotter.setExpression("x+y*i+2i");
-	Plotter.setExpression("(x+y*i+i*sin(x*2)*0.2)*0.5*(1+i)");
+//	Plotter.setExpression("(x+y*i+i*sin(x*2)*0.2)*0.5*(1+i)");
 	
 	Plotter.transition = 1;
 	Plotter.init();
